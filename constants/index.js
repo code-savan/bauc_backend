@@ -3,6 +3,7 @@
 // Expanded list of statuses (20+ options for demonstration)
 export const PROPERTY_STATUS = [
     'available',
+    'completed',
     'pending',
     'sold',
     'awaiting approval',
@@ -28,6 +29,7 @@ export const PROPERTY_STATUS = [
   // Expanded list of property types
   export const PROPERTY_TYPES = [
     'Apartment',
+    'Residential',
     'House',
     'Villa',
     'Townhouse',
@@ -43,6 +45,7 @@ export const PROPERTY_STATUS = [
     'Retail',
     'Industrial',
     'Mixed Use',
+    'Residential or Commercial',
     'Farm',
     'Resort',
     'Warehouse',

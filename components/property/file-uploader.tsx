@@ -55,7 +55,7 @@ export function FileUploader({
         </Button>
       </div>
 
-      {uploadedFiles.length > 0 && (
+      {/* {uploadedFiles.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {uploadedFiles.map((url, index) => (
             <div
@@ -79,7 +79,7 @@ export function FileUploader({
             </div>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

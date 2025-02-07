@@ -41,8 +41,9 @@ export default function PropertiesPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
+        console.log(data)
       setProperties(data || []);
+
     } catch (error: any) {
       toast({
         variant: "destructive",

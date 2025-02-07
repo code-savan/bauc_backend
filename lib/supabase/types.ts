@@ -43,11 +43,11 @@ export type Property = {
     description?: Record<string, any>;
     status?: string;
     location: string;
-    type: string[];
+    type: string;
     property_type?: string;
     area?: number;
     mortgage_option?: boolean;
-    initial_deposit?: number | null;
+    initial_deposit?: string;
     land_mark?: string | null;
     discount?: string;
     land_status?: string | null;

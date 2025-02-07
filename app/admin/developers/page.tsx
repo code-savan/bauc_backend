@@ -121,7 +121,9 @@ export default function DevelopersPage() {
                 {developers.map((developer) => (
                   <TableRow key={developer.id} className='start'>
                     <TableCell  className=''>
-                        <Image src={developer.image} alt='developer image' width={200} height={200} />
+                        <div className='w-[100px] h-[100px] bg-gray-100 rounded-full flex items-center justify-center p-2 overflow-hidden'>
+                        <Image src={developer.image} alt='developer image' className='w-full h-full object-contain' width={200} height={200} />
+                        </div>
                         </TableCell>
                     <TableCell className="font-medium ">
                         <span>
