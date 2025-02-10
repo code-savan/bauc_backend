@@ -67,12 +67,21 @@ export type Property = {
 export type Developer = {
     id: string;
     title: string;
-    content: string;
+    body: Record<string, any>;
     image: string;
+    created_at: string;
     properties: string[];
-
 }
-
+export type Blog = {
+    id: string;
+    title: string;
+    author: string;
+    slug?: string;
+    image: string;
+    body: Record<string, any>;
+    created_at?: string;
+    updated_at?: string;
+  };
 
 export type ImportJob = {
   id: string;

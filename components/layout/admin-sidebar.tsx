@@ -13,6 +13,7 @@ import {
   X,
   ChevronDown,
   Cog,
+  File,
 } from 'lucide-react';
 import {
   Sheet,
@@ -65,6 +66,15 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
       children: [
         { title: 'All Developers', href: '/admin/developers' },
         { title: 'Add New', href: '/admin/developers/new' },
+      ],
+    },
+    {
+      title: 'Blogs',
+      href: '/admin/blogs',
+      icon: <File className="h-5 w-5" />,
+      children: [
+        { title: 'All Blogs', href: '/admin/blogs' },
+        { title: 'Add New', href: '/admin/blogs/new' },
       ],
     },
     ...(isSuperAdmin

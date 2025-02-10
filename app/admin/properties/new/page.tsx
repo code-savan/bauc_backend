@@ -445,6 +445,7 @@ const handleFullImageUpload = async (files: File[]) => {
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value || ''}
                     placeholder="Initial Deposit Amount"
                   />
                 </FormControl>
@@ -459,7 +460,7 @@ const handleFullImageUpload = async (files: File[]) => {
               <FormItem>
                 <FormLabel>Land Mark</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Land Mark (optional)" />
+                  <Input {...field} value={field.value || ''} placeholder="Land Mark (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -489,7 +490,7 @@ const handleFullImageUpload = async (files: File[]) => {
               <FormItem>
                 <FormLabel>Land Status</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Land Status (optional)" />
+                  <Input {...field} value={field.value || ''} placeholder="Land Status (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -569,7 +570,6 @@ const handleFullImageUpload = async (files: File[]) => {
               onUpload={handleGalleryUpload}
               isUploading={uploadingGallery}
               uploadedFiles={galleryImages}
-              multiple={true}
             />
             <div className="mt-2 grid grid-cols-2 gap-2">
               {galleryImages.map((img) => (
@@ -594,7 +594,6 @@ const handleFullImageUpload = async (files: File[]) => {
               onUpload={handleThumbnailUpload}
               isUploading={uploadingThumbnail}
               uploadedFiles={thumbnailImage ? [thumbnailImage] : []}
-              multiple={false}
             />
             </div>
               <div className=" relative h-[184px] w-[300px] rounded-md border overflow-hidden">
@@ -621,7 +620,6 @@ const handleFullImageUpload = async (files: File[]) => {
               onUpload={handleFullImageUpload}
               isUploading={uploadingFullImage}
               uploadedFiles={fullImage ? [fullImage] : []}
-              multiple={false}
             />
             {fullImage && (
               <div className="mt-2 relative w-full h-fit border">
