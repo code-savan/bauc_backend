@@ -73,7 +73,13 @@ export default function AdminApproval() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="loader">
+    <span className="bar"></span>
+    <span className="bar"></span>
+    <span className="bar"></span>
+</div>
+    </div>;
   }
 
   return (

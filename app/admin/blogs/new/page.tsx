@@ -8,6 +8,7 @@ import * as z from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 import {
   Form,
   FormControl,
@@ -46,6 +47,7 @@ import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import FontFamily from '@tiptap/extension-font-family'
 import { Extension } from '@tiptap/core'
+import { ImageUploader } from '@/components/property/image-uploader';
 
 const blogSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -76,6 +78,7 @@ export default function NewBlogPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [blogImage, setBlogImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -189,7 +192,7 @@ export default function NewBlogPage() {
         ...values,
         body: editorContent, // Use the HTML content
         slug: slugify(values.title),
-        image: blogImage,
+        image: values.image,
         author: values.author,
       };
 
@@ -396,36 +399,54 @@ export default function NewBlogPage() {
             )}
           />
 
-          <div>
-            <FormLabel>Blog Image</FormLabel>
-            <div className="flex gap-4 items-start">
-              <div className="flex-1">
-                <FileUploader
-                  onUpload={handleImageUpload}
-                  isUploading={uploadingImage}
-                  uploadedFiles={blogImage ? [blogImage] : []}
-                />
-              </div>
-              {blogImage && (
-                <div className="relative w-[200px] h-[200px]">
-                  <Image
-                    src={blogImage}
-                    alt="Blog Preview"
-                    fill
-                    className="object-cover rounded-md"
-                  />
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-0 right-0"
-                    onClick={removeImage}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+          <FormField
+            control={form.control}
+            name="image"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Banner Image</FormLabel>
+                <div className="flex flex-col items-start">
+                  <div className="w-full mb-4">
+                    <ImageUploader
+                      onUpload={(urls) => {
+                        setBannerImage(urls[0]);
+                        form.setValue('image', urls[0]);
+                      }}
+                      bucketName="blog"
+                      multiple={false}
+                      maxFiles={1}
+                      folderPath={`blog_banners/${form.getValues("title")
+                        ? slugify(form.getValues("title"))
+                        : format(new Date(), "yyyyMMdd")}`}
+                    />
+                  </div>
+                  {bannerImage && (
+                    <div className="relative h-auto">
+                      <Image
+                        src={bannerImage}
+                        alt="Banner Preview"
+                        width={1000}
+                        height={1000}
+                        className="object-cover rounded-md w-full h-fit"
+                      />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setBannerImage(null);
+                          form.setValue('image', null);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="flex justify-end space-x-4">
             <Button

@@ -18,7 +18,7 @@ export default function AdminLayout({
   useEffect(() => {
     const getProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         const { data } = await supabase
           .from('admins')
@@ -43,7 +43,11 @@ export default function AdminLayout({
 
   if (!admin) {
     return <div className="min-h-screen flex items-center justify-center">
-      Loading...
+      <div className="loader">
+    <span className="bar"></span>
+    <span className="bar"></span>
+    <span className="bar"></span>
+</div>
     </div>;
   }
 

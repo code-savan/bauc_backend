@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
-import { Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Eye } from 'lucide-react';
 import Image from 'next/image';
 
 // type Blog = {
@@ -91,7 +91,13 @@ export default function BlogsPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="loader">
+    <span className="bar"></span>
+    <span className="bar"></span>
+    <span className="bar"></span>
+</div>
+    </div>;
   }
 
   return (
@@ -133,7 +139,7 @@ export default function BlogsPage() {
                 {blogs.map((blog) => (
                   <TableRow key={blog.id}>
                     <TableCell className="font-medium">
-                        <Image src={blog.image} alt={blog.title} width={100} height={100} />
+                        <Image src={blog.image || "/"} alt={blog.title} width={100} height={100} />
                     </TableCell>
                     <TableCell className="font-medium">
                       {blog.title}
@@ -144,7 +150,7 @@ export default function BlogsPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {format(new Date(blog.created_at), 'MMM d, yyyy')}
+                      {blog.created_at ? format(new Date(blog.created_at), 'MMM d, yyyy') : 'N/A'}
                     </TableCell>
                     <TableCell>
                     </TableCell>
@@ -158,6 +164,12 @@ export default function BlogsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/blogs/${blog.id}/preview`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Preview
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/blogs/${blog.id}/edit`}>
                               <Pencil className="h-4 w-4 mr-2" />

@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
-import { Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Eye } from 'lucide-react';
 import Image from 'next/image';
 
 export default function DevelopersPage() {
@@ -80,7 +80,13 @@ export default function DevelopersPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="loader">
+    <span className="bar"></span>
+    <span className="bar"></span>
+    <span className="bar"></span>
+</div>
+    </div>;
   }
 
   return (
@@ -144,6 +150,12 @@ export default function DevelopersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/developers/${developer.id}/preview`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Preview
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/developers/${developer.id}/edit`}>
                               <Pencil className="h-4 w-4 mr-2" />

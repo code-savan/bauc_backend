@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Cog,
   File,
+  Calendar,
 } from 'lucide-react';
 import {
   Sheet,
@@ -77,6 +78,15 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
         { title: 'Add New', href: '/admin/blogs/new' },
       ],
     },
+    {
+      title: 'Events',
+      href: '/admin/events',
+      icon: <Calendar className="h-5 w-5" />,
+      children: [
+        { title: 'All Events', href: '/admin/events' },
+        { title: 'Add New', href: '/admin/events/new' },
+      ],
+    },
     ...(isSuperAdmin
       ? [
           {
@@ -92,7 +102,7 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
     <div className="space-y-4 py-4 h-full flex flex-col justify-between">
       <div className="px-3 py-2">
         <h2 className="mb-2 px-4 text-lg font-semibold">Admin Dashboard</h2>
-        <div className="space-y-1">
+        <div className="space-y-2">
           {navItems.map((item) => (
             item.children ? (
               <Collapsible
@@ -103,9 +113,9 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
                 )}
               >
                 <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded-lg">
-                  <div className="flex items-center">
+                  <div className="flex items-center text-gray-900">
                     {item.icon}
-                    <span className="ml-3 text-gray-900">{item.title}</span>
+                   <span className="ml-3 text-gray-900">{item.title}</span>
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </CollapsibleTrigger>

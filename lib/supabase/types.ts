@@ -9,33 +9,6 @@ export type Admin = {
 
 };
 
-// export type Property = {
-//   id: string;
-//   title: string;
-//   slug: string;
-//   description: Record<string, any>;
-//   status: string;
-//   location: string;
-//   type: string;
-//   property_type: string;
-//   area: number;
-//   mortgage_option: boolean;
-//   initial_deposit: number | null;
-//   land_mark: string | null;
-//   discount: number;
-//   land_status: string | null;
-//   amenities: string[];
-//   completion_date: string;
-//   gallery: string[];
-//   thumbnail: string | null;
-//   full_image: string | null;
-//   price_range: string;
-//   payment_term: string;
-//   created_by: string;
-//   created_at: string;
-//   updated_at: string;
-// };
-
 export type Property = {
     id: string;
     title: string;
@@ -62,6 +35,20 @@ export type Property = {
     created_at?: string;
     updated_at?: string;
     developer_id?: string;
+  };
+
+  export type Event = {
+    id: string;
+    title: string;
+    slug?: string;
+    loaction?: string;
+    description?: Record<string, any>;
+    gallery?: string[];
+    banner_image?: string | null;
+    event_video?: string | null;
+    hosted_by?: string;
+    created_at?: string;
+    updated_at?: string;
   };
 
 export type Developer = {

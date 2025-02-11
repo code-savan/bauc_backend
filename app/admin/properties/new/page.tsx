@@ -28,11 +28,35 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { FileUploader } from "@/components/property/file-uploader";
+import { ImageUploader } from "@/components/property/image-uploader";
 import { slugify } from "@/lib/utils";
 import { COUNTRY_OPTIONS, STATE_OPTIONS_NIGERIA, PROPERTY_TYPES, PROPERTY_STATUS } from "@/constants/index";
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
+import TextStyle from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import FontFamily from '@tiptap/extension-font-family';
+import Bold from "@tiptap/extension-bold";
+import Italic from "@tiptap/extension-italic";
+import Strike from "@tiptap/extension-strike";
+import BulletList from "@tiptap/extension-bullet-list";
+import OrderedList from "@tiptap/extension-ordered-list";
+import ListItem from "@tiptap/extension-list-item";
+import { Toggle } from "@/components/ui/toggle";
+import {
+  Bold as BoldIcon,
+  Italic as ItalicIcon,
+  Strikethrough as StrikeIcon,
+  List,
+  ListOrdered,
+  Palette,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const propertySchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -105,106 +129,80 @@ export default function NewPropertyPage() {
     },
   });
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: "",
+  const fontSizes = [
+    { value: '12px', name: 'Small' },
+    { value: '16px', name: 'Normal' },
+    { value: '20px', name: 'Large' },
+    { value: '24px', name: 'Extra Large' },
+  ];
+
+  const fontFamilies = [
+    { value: 'inter', label: 'Inter' },
+    { value: 'arial', label: 'Arial' },
+    { value: 'helvetica', label: 'Helvetica' },
+    { value: 'times-new-roman', label: 'Times New Roman' },
+    { value: 'georgia', label: 'Georgia' },
+  ];
+
+  const CustomTextStyle = TextStyle.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        fontSize: {
+          default: null,
+          parseHTML: element => element.style.fontSize,
+          renderHTML: attributes => {
+            if (!attributes.fontSize) return {}
+            return {
+              style: `font-size: ${attributes.fontSize}`
+            }
+          }
+        }
+      }
+    }
   });
 
-const handleGalleryUpload = async (files: File[]) => {
-    if (files.length > 10) {
-      toast({
-        variant: "destructive",
-        title: "Upload Limit Exceeded",
-        description: "You can only upload up to 10 images for the gallery.",
-      });
-      return;
-    }
-    const propertyTitle = form.getValues("title");
-    const folderName = propertyTitle ? slugify(propertyTitle) : format(new Date(), "yyyyMMdd");
-    setUploadingGallery(true);
-    try {
-      const uploadedUrls: string[] = [];
-      for (const file of files) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `gallery/${folderName}/${fileName}`;
-        const { error: uploadError } = await supabase.storage.from("gallery").upload(filePath, file);
-        if (uploadError) throw uploadError;
-        const { data, error: urlError } = await supabase.storage.from("gallery").createSignedUrl(filePath, 60);
-        if (urlError) throw urlError;
-        uploadedUrls.push(data.signedUrl);
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bold: false,
+        italic: false,
+        strike: false,
+        heading: false,
+        bulletList: false,
+        orderedList: false,
+      }),
+      Bold,
+      Italic,
+      Strike,
+      CustomTextStyle,
+      Color,
+      FontFamily,
+      BulletList,
+      OrderedList,
+      ListItem,
+    ],
+    content: "",
+    editorProps: {
+      attributes: {
+        class: 'prose prose-stone dark:prose-invert max-w-none p-4 min-h-[200px] whitespace-pre-wrap',
       }
-      setGalleryImages((prev) => [...prev, ...uploadedUrls]);
-      toast({
-        title: "Success",
-        description: "Gallery images uploaded successfully",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    } finally {
-      setUploadingGallery(false);
-    }
+    },
+    editable: true,
+    injectCSS: false,
+    immediatelyRender: false,
+  }, []);
+
+  const handleGalleryUpload = (urls: string[]) => {
+    setGalleryImages(prev => [...prev, ...urls]);
   };
 
-const handleThumbnailUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-    setUploadingThumbnail(true);
-    try {
-      const file = files[0];
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `thumbnail/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from("thumbnail").upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: signedData, error: urlError } = await supabase.storage.from("thumbnail").createSignedUrl(filePath, 60);
-      if (urlError) throw urlError;
-      console.log(signedData);
-      setThumbnailImage(signedData.signedUrl);
-      toast({
-        title: "Success",
-        description: "Thumbnail uploaded successfully",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    } finally {
-      setUploadingThumbnail(false);
-    }
+  const handleThumbnailUpload = (urls: string[]) => {
+    setThumbnailImage(urls[0]);
   };
 
-const handleFullImageUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-    setUploadingFullImage(true);
-    try {
-      const file = files[0];
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `full_image/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from("full_image").upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data, error: urlError } = await supabase.storage.from("full_image").createSignedUrl(filePath, 60);
-      if (urlError) throw urlError;
-      setFullImage(data.signedUrl);
-      toast({
-        title: "Success",
-        description: "Full image uploaded successfully",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    } finally {
-      setUploadingFullImage(false);
-    }
+  const handleFullImageUpload = (urls: string[]) => {
+    setFullImage(urls[0]);
   };
 
   const removeGalleryImage = (url: string) => {
@@ -258,6 +256,12 @@ const handleFullImageUpload = async (files: File[]) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper function to get folder path
+  const getFolderPath = () => {
+    const propertyTitle = form.getValues("title");
+    return propertyTitle ? slugify(propertyTitle) : format(new Date(), "yyyyMMdd-HHmmss");
   };
 
   return (
@@ -445,7 +449,6 @@ const handleFullImageUpload = async (files: File[]) => {
                     type="number"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    value={field.value || ''}
                     placeholder="Initial Deposit Amount"
                   />
                 </FormControl>
@@ -460,7 +463,7 @@ const handleFullImageUpload = async (files: File[]) => {
               <FormItem>
                 <FormLabel>Land Mark</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} placeholder="Land Mark (optional)" />
+                  <Input {...field} placeholder="Land Mark (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -490,7 +493,7 @@ const handleFullImageUpload = async (files: File[]) => {
               <FormItem>
                 <FormLabel>Land Status</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} placeholder="Land Status (optional)" />
+                  <Input {...field} placeholder="Land Status (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -555,86 +558,228 @@ const handleFullImageUpload = async (files: File[]) => {
               />
             </div>
           </div>
-          <div>
-            <FormLabel>Description</FormLabel>
-            <div className="mt-1 border rounded-md min-h-[200px]">
-              <EditorContent editor={editor} className="prose max-w-none p-4" />
+          <FormField
+            control={form.control}
+            name="description"
+            render={() => (
+              <FormItem>
+                <FormLabel>Description *</FormLabel>
+                <FormControl>
+                  <div className="border rounded-md">
+                    <div className="border-b bg-muted p-2 flex flex-wrap gap-2 items-center">
+                      <Select
+                        onValueChange={(value) => {
+                          editor?.chain().focus().setMark('textStyle', { fontSize: value }).run()
+                        }}
+                      >
+                        <SelectTrigger className="w-[120px] h-8">
+                          <SelectValue placeholder="Size..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fontSizes.map((size) => (
+                            <SelectItem key={size.value} value={size.value}>
+                              {size.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={editor?.getAttributes('textStyle').fontFamily}
+                        onValueChange={(value) => {
+                          editor?.chain().focus().setFontFamily(value).run();
+                        }}
+                      >
+                        <SelectTrigger className="w-[140px] h-8">
+                          <SelectValue placeholder="Font family" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {fontFamilies.map((font) => (
+                            <SelectItem
+                              key={font.value}
+                              value={font.value}
+                              className={cn("font-[" + font.value + "]")}
+                            >
+                              {font.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8">
+                            <Palette className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-40">
+                          <div className="grid grid-cols-5 gap-2">
+                            {[
+                              '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+                              '#FF00FF', '#00FFFF', '#808080', '#800000', '#808000',
+                            ].map((color) => (
+                              <Button
+                                key={color}
+                                style={{ backgroundColor: color }}
+                                className="w-6 h-6 rounded-full"
+                                onClick={() => editor?.chain().focus().setColor(color).run()}
+                              />
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      <div className="w-px h-6 bg-border mx-1" />
+
+                      <Toggle
+                        size="sm"
+                        pressed={editor?.isActive("bold")}
+                        onPressedChange={() => editor?.chain().focus().toggleBold().run()}
+                      >
+                        <BoldIcon className="h-4 w-4" />
+                      </Toggle>
+                      <Toggle
+                        size="sm"
+                        pressed={editor?.isActive("italic")}
+                        onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
+                      >
+                        <ItalicIcon className="h-4 w-4" />
+                      </Toggle>
+                      <Toggle
+                        size="sm"
+                        pressed={editor?.isActive("strike")}
+                        onPressedChange={() => editor?.chain().focus().toggleStrike().run()}
+                      >
+                        <StrikeIcon className="h-4 w-4" />
+                      </Toggle>
+
+                      <div className="w-px h-6 bg-border mx-1" />
+
+                      <Toggle
+                        size="sm"
+                        pressed={editor?.isActive("bulletList")}
+                        onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
+                      >
+                        <List className="h-4 w-4" />
+                      </Toggle>
+                      <Toggle
+                        size="sm"
+                        pressed={editor?.isActive("orderedList")}
+                        onPressedChange={() => editor?.chain().focus().toggleOrderedList().run()}
+                      >
+                        <ListOrdered className="h-4 w-4" />
+                      </Toggle>
+                    </div>
+                    <EditorContent
+                      editor={editor}
+                      className="prose prose-stone dark:prose-invert max-w-none p-4 min-h-[200px] max-h-[400px] overflow-y-auto"
+                      onChange={() => {
+                        form.setValue("description", { content: editor?.getHTML() || "" });
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="md:flex space-x-3 items-end">
+            <div className="w-full">
+              <FormLabel>Thumbnail Image</FormLabel>
+              <ImageUploader
+                onUpload={handleThumbnailUpload}
+                bucketName="property"
+                folderPath={`thumbnail/${getFolderPath()}`}
+                multiple={false}
+              />
             </div>
+            <div className="relative h-[200px] w-[300px] rounded-md border overflow-hidden">
+              <Image
+                src={thumbnailImage ? thumbnailImage : "https://xliweicrvrldeigdatup.supabase.co/storage/v1/object/public/public%20files//placeholder.svg"}
+                alt="Thumbnail Preview"
+                width={200}
+                height={200}
+                className="object-cover w-full h-full"
+              />
+              {thumbnailImage && (
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-2 right-2"
+                  onClick={removeThumbnailImage}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+          <div>
+            <FormLabel>Full Image</FormLabel>
+            <ImageUploader
+              onUpload={handleFullImageUpload}
+              bucketName="property"
+              folderPath={`full_image/${getFolderPath()}`}
+              multiple={false}
+            />
+            {fullImage && (
+              <div className="mt-2 relative w-full h-fit border">
+                <Image
+                  src={fullImage}
+                  alt="Full Image Preview"
+                  width={1000}
+                  height={1000}
+                  className="rounded-md border w-full h-fit"
+                />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-2 right-2"
+                  onClick={removeFullImage}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
           <div>
             <FormLabel>Gallery Images</FormLabel>
             <p className="text-sm text-gray-500 mb-2">
               You can upload multiple images (Max 10 files).
             </p>
-            <FileUploader
+            <ImageUploader
               onUpload={handleGalleryUpload}
-              isUploading={uploadingGallery}
-              uploadedFiles={galleryImages}
+              bucketName="property"
+              folderPath={`gallery/${getFolderPath()}`}
+              multiple={true}
+              maxFiles={10}
             />
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {galleryImages.map((img) => (
-                <div key={img} className="relative h-fit basis-1/2">
-                  <Image src={img} alt="Gallery Preview" width={500} height={500} className="rounded-md border w-full h-full" />
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-0 right-0"
-                    onClick={() => removeGalleryImage(img)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="md:flex space-x-3 items-end">
-            <div className="w-full">
-            <FormLabel>Thumbnail Image</FormLabel>
-            <FileUploader
-              onUpload={handleThumbnailUpload}
-              isUploading={uploadingThumbnail}
-              uploadedFiles={thumbnailImage ? [thumbnailImage] : []}
-            />
-            </div>
-              <div className=" relative h-[184px] w-[300px] rounded-md border overflow-hidden">
-            {/* {thumbnailImage && ( */}
-                <>
-                <Image src={thumbnailImage ? thumbnailImage : "https://xliweicrvrldeigdatup.supabase.co/storage/v1/object/public/public%20files//placeholder.svg"} alt="Thumbnail Preview" width={200} height={200} className="object-cover w-full h-full" />
-                {thumbnailImage && (
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  className="absolute top-0 right-0"
-                  onClick={removeThumbnailImage}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-                )}
-                </>
-            {/* )} */}
+            {galleryImages.length > 0 && (
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {galleryImages.map((image, index) => (
+                  <div key={index} className="relative aspect-square rounded-md overflow-hidden">
+                    <Image
+                      src={image}
+                      alt={`Gallery image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setGalleryImages(galleryImages.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
+            )}
           </div>
-          <div>
-            <FormLabel>Full Image</FormLabel>
-            <FileUploader
-              onUpload={handleFullImageUpload}
-              isUploading={uploadingFullImage}
-              uploadedFiles={fullImage ? [fullImage] : []}
-            />
-            {fullImage && (
-              <div className="mt-2 relative w-full h-fit border">
-                <Image src={fullImage} alt="Full Image Preview" width={1000} height={1000} className="rounded-md border w-full h-fit" />
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  className="absolute top-0 right-0"
-                  onClick={removeFullImage}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-             )}
-          </div>
+
+
           <div className="flex justify-end space-x-4">
             <Button
               type="submit"
