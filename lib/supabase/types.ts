@@ -50,7 +50,7 @@ export type Property = {
     created_at?: string;
     updated_at?: string;
   };
-  
+
 export type Developer = {
     id: string;
     title: string;
