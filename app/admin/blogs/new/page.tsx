@@ -88,7 +88,7 @@ export default function NewBlogPage() {
     resolver: zodResolver(blogSchema),
     defaultValues: {
       title: "",
-      author: "",
+      author: "BAUC International",
       body: "",
       image: null,
     },

@@ -14,7 +14,7 @@ export default function PendingPage() {
   useEffect(() => {
     const checkApprovalStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         const { data: admin } = await supabase
           .from('admins')
@@ -44,8 +44,12 @@ export default function PendingPage() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
-      Loading...
-    </div>;
+    <div className="loader">
+  <span className="bar"></span>
+  <span className="bar"></span>
+  <span className="bar"></span>
+</div>
+  </div>;
   }
 
   return (
@@ -58,7 +62,7 @@ export default function PendingPage() {
           Approval Pending
         </h2>
         <p className="mt-2 text-gray-600">
-          Your account is pending approval from an administrator. 
+          Your account is pending approval from an administrator.
           You&apos;ll be automatically redirected once approved.
         </p>
         <Button

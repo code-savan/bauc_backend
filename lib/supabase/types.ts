@@ -50,14 +50,14 @@ export type Property = {
     created_at?: string;
     updated_at?: string;
   };
-
+  
 export type Developer = {
     id: string;
     title: string;
-    body: Record<string, any>;
+    content: Record<string, any>;
     image: string;
     created_at: string;
-    properties: string[];
+    properties?: any[];
 }
 export type Blog = {
     id: string;

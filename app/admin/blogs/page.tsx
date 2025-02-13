@@ -131,7 +131,7 @@ export default function BlogsPage() {
                   <TableHead>Title</TableHead>
                   <TableHead>Author</TableHead>
                   <TableHead>body</TableHead>
-                  <TableHead>Created_at</TableHead>
+                  <TableHead>Created</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>

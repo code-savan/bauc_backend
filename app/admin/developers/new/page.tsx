@@ -19,8 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
+import { ImageUploader } from "@/components/property/image-uploader";
 
 const developerSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -43,6 +43,14 @@ export default function AddDeveloperPage() {
   const editor = useEditor({
     extensions: [StarterKit],
     content: "",
+    editorProps: {
+        attributes: {
+          class: 'prose max-w-none p-4 min-h-[200px] whitespace-pre-wrap',
+        }
+      },
+      editable: true,
+      injectCSS: false,
+      immediatelyRender: false,
     onUpdate: ({ editor }) => {
       form.setValue("content", editor.getHTML(), { shouldValidate: true });
     },
@@ -130,7 +138,19 @@ export default function AddDeveloperPage() {
               <FormItem>
                 <FormLabel>Developer Image</FormLabel>
                 <FormControl>
-                  <div className="flex flex-col items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-full">
+                  <ImageUploader
+                      onUpload={(urls) => {
+                        setUploadedImageUrl(urls[0]);
+                        toast({ title: "Upload Successful", description: "Image uploaded successfully." });
+                      }}
+                      bucketName="developer"
+                      multiple={false}
+                      maxFiles={1}
+                      folderPath="developers"
+                    />
+                    </div>
                     {uploadedImageUrl ? (
                       <Image
                         src={uploadedImageUrl}
@@ -140,23 +160,11 @@ export default function AddDeveloperPage() {
                         className="rounded-md border"
                       />
                     ) : (
-                      <div className="w-[200px] h-[200px] border rounded-md flex items-center justify-center text-gray-500">
+                      <div className="w-[300px] h-[200px] border rounded-md flex items-center justify-center text-gray-500">
                         No image selected
                       </div>
                     )}
-                    <UploadButton
-                      endpoint="imageUploader"
-                      onClientUploadComplete={(res) => {
-                        const url = res[0]?.url;
-                        if (url) {
-                          setUploadedImageUrl(url);
-                          toast({ title: "Upload Successful", description: "Image uploaded successfully." });
-                        }
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast({ variant: "destructive", title: "Upload Failed", description: error.message });
-                      }}
-                    />
+
                   </div>
                 </FormControl>
                 <FormMessage />
