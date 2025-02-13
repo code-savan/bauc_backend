@@ -448,8 +448,8 @@ export default function NewPropertyPage() {
                   <Input
                     type="number"
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    placeholder="Initial Deposit Amount"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -463,7 +463,7 @@ export default function NewPropertyPage() {
               <FormItem>
                 <FormLabel>Land Mark</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Land Mark (optional)" />
+                  <Input {...field} value={field.value ?? ''} placeholder="Land Mark (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -493,7 +493,7 @@ export default function NewPropertyPage() {
               <FormItem>
                 <FormLabel>Land Status</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Land Status (optional)" />
+                  <Input {...field} value={field.value ?? ''} placeholder="Land Status (optional)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

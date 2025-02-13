@@ -87,7 +87,11 @@ export default function BlogPreview({ params }: { params: { id: string } }) {
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
-                  <span>{format(new Date(blog.created_at), 'MMMM d, yyyy')}</span>
+                  <span>
+                    {blog.created_at
+                      ? format(new Date(blog.created_at), 'MMMM d, yyyy')
+                      : 'Date not available'}
+                  </span>
                 </div>
               </div>
             </header>
