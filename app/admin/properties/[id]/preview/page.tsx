@@ -105,29 +105,31 @@ export default function PropertyPreview({ params }: { params: { id: string } }) 
                   <dd className="text-gray-900">{property.type}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-gray-500">Price</dt>
-                  <dd className="text-gray-900">₦{property.price?.toLocaleString()}</dd>
+                  <dt className="text-sm text-gray-500">Price Range</dt>
+                  <dd className="text-gray-900">
+                    {property.price_range ? `₦${property.price_range}` : 'Contact for price'}
+                  </dd>
                 </div>
               </dl>
             </div>
 
             <div>
               <h2 className="text-xl font-semibold mb-4">Features</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {property.features && property.features.map((feature, index) => (
+              {/* <div className="grid grid-cols-2 gap-4">
+                {property.features && (property.features as string[]).map((feature: string, index: number) => (
                   <div key={index} className="flex items-center space-x-2">
                     <span className="w-2 h-2 bg-primary rounded-full" />
                     <span>{feature}</span>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
 
           {/* Description */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Description</h2>
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: property.description }} />
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: property.description || '' }} />
           </div>
 
           {/* Gallery Grid */}
