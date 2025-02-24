@@ -15,6 +15,17 @@ import {
   Cog,
   File,
   Calendar,
+  MessageSquare,
+  Mail,
+  Mails,
+  FileText,
+  Users,
+  Megaphone,
+  BarChart,
+  PlusCircle,
+  Target,
+  LineChart,
+  Bell,
 } from 'lucide-react';
 import {
   Sheet,
@@ -27,6 +38,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import Image from 'next/image';
 
 type NavItem = {
   title: string;
@@ -45,7 +57,7 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [openCollapsible, setOpenCollapsible] = useState<string | null>(null);
 
-  const navItems: NavItem[] = [
+  const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
       href: '/admin',
@@ -87,6 +99,11 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
         { title: 'Add New', href: '/admin/events/new' },
       ],
     },
+    // {
+    //   title: 'Notifications',
+    //   href: '/admin/notifications',
+    //   icon: <Bell className="h-5 w-5" />,
+    // },
     ...(isSuperAdmin
       ? [
           {
@@ -98,65 +115,190 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
       : []),
   ];
 
+  const formNavItems: NavItem[] = [
+    {
+      title: 'Forms Overview',
+      href: '/admin/forms',
+      icon: <BarChart className="h-5 w-5" />,
+    },
+    {
+      title: 'Contact Messages',
+      href: '/admin/forms/contacts',
+      icon: <Mails className="h-5 w-5" />,
+    },
+    {
+      title: 'Newsletter Subscribers',
+      href: '/admin/forms/newsletter',
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      title: 'Expression of Interest',
+      href: '/admin/forms/interests',
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      title: 'Popup Submissions',
+      href: '/admin/forms/popups',
+      icon: <MessageSquare className="h-5 w-5" />,
+    },
+  ];
+
+  const campaignNavItems: NavItem[] = [
+    {
+      title: 'Campaign Overview',
+      href: '/admin/campaigns',
+      icon: <BarChart className="h-5 w-5" />,
+    },
+    {
+      title: 'All Campaigns',
+      href: '/admin/campaigns/all',
+      icon: <Megaphone className="h-5 w-5" />,
+    },
+    {
+      title: 'Create Campaign',
+      href: '/admin/campaigns/new',
+      icon: <PlusCircle className="h-5 w-5" />,
+    },
+    {
+      title: 'Track Campaigns',
+      href: '/admin/campaigns/track',
+      icon: <Target className="h-5 w-5" />,
+    },
+    {
+      title: 'Campaign Analytics',
+      href: '/admin/campaigns/analytics',
+      icon: <LineChart className="h-5 w-5" />,
+    },
+  ];
+
   const NavContent = () => (
-    <div className="space-y-4 py-4 h-full flex flex-col justify-between">
-      <div className="px-3 py-2">
-        <h2 className="mb-2 px-4 text-lg font-semibold">Admin Dashboard</h2>
-        <div className="space-y-2">
-          {navItems.map((item) => (
-            item.children ? (
-              <Collapsible
-                key={item.title}
-                open={openCollapsible === item.title}
-                onOpenChange={() => setOpenCollapsible(
-                  openCollapsible === item.title ? null : item.title
-                )}
-              >
-                <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded-lg">
-                  <div className="flex items-center text-gray-900">
-                    {item.icon}
-                   <span className="ml-3 text-gray-900">{item.title}</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-8 space-y-1">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={cn(
-                        "flex items-center py-2 px-4 text-sm font-medium rounded-lg ",
-                        pathname === child.href
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      )}
-                    >
-                      {child.title}
-                    </Link>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
+    <div className="flex flex-col h-full bg-gray-900">
+      {/* Header/Logo Section */}
+      <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-800">
+        <Image
+          src="/logo-white.png" // Make sure to add your logo
+          alt="Company Logo"
+          width={80}
+          height={80}
+          className=""
+        />
+        {/* <div>
+          <h1 className="text-sm font-semibold text-white">BAUC International</h1>
+          <p className="text-sm text-gray-400">Admin Dashboard</p>
+        </div> */}
+      </div>
+
+      {/* Navigation Section */}
+      <div className="flex-1 px-4 py-6 space-y-8 overflow-y-auto">
+        {/* Main Navigation */}
+        <div>
+          <h2 className="px-4 text-xs font-semibold text-gray-50 uppercase tracking-wider">
+            Main
+          </h2>
+          <div className="mt-2 space-y-1">
+            {mainNavItems.map((item) => (
+              item.children ? (
+                <Collapsible
+                  key={item.title}
+                  open={openCollapsible === item.title}
+                  onOpenChange={() => setOpenCollapsible(
+                    openCollapsible === item.title ? null : item.title
+                  )}
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      {item.icon}
+                      <span className="ml-3">{item.title}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-8 space-y-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={cn(
+                          "flex items-center py-2 px-4 text-sm font-medium rounded-lg",
+                          pathname === child.href
+                            ? "bg-gray-800 text-white"
+                            : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                        )}
+                      >
+                        {child.title}
+                      </Link>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center px-4 py-2 text-sm font-medium rounded-lg",
+                    pathname === item.href
+                      ? "bg-gray-800 text-white"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  )}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.title}</span>
+                </Link>
+              )
+            ))}
+          </div>
+        </div>
+
+        {/* Forms Section */}
+        <div>
+          <h2 className="px-4 text-xs font-semibold text-gray-50 uppercase tracking-wider">
+            Forms
+          </h2>
+          <div className="mt-2 space-y-1">
+            {formNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
                   "flex items-center px-4 py-2 text-sm font-medium rounded-lg",
                   pathname === item.href
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
                 )}
               >
                 {item.icon}
-                <span className="ml-3 text-gray-900">{item.title}</span>
+                <span className="ml-3">{item.title}</span>
               </Link>
-            )
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Campaigns Section */}
+        <div>
+          <h2 className="px-4 text-xs font-semibold text-gray-50 uppercase tracking-wider">
+            Campaigns
+          </h2>
+          <div className="mt-2 space-y-1">
+            {campaignNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-4 py-2 text-sm font-medium rounded-lg",
+                  pathname === item.href
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                )}
+              >
+                {item.icon}
+                <span className="ml-3">{item.title}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* sign out  */}
-      <div className="px-3 py-2">
+      {/* Footer/Logout Section */}
+      <div className="border-t border-gray-800 p-4">
         <Button
           variant="destructive"
           className="w-full justify-start"
@@ -172,9 +314,7 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
   return (
     <>
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex flex-col flex-grow border-r bg-white pt-5 overflow-y-auto">
-          <NavContent />
-        </div>
+        <NavContent />
       </aside>
 
       <div className="md:hidden">

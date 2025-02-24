@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { Admin } from '@/lib/supabase/types';
+import { Bell, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import NotificationBell from '@/components/ui/notification';
+import Image from 'next/image';
 
 export default function AdminLayout({
   children,
@@ -57,8 +62,38 @@ export default function AdminLayout({
         isSuperAdmin={admin.is_superadmin}
         onSignOut={handleSignOut}
       />
+
+      {/* Top Navigation */}
       <div className="md:pl-64">
-        <main className="py-6">
+        <div className="fixed top-0 right-0 left-0 md:left-64 h-[63px] bg-white border-b border-gray-200 z-10">
+          <div className="flex items-center justify-between h-full px-4">
+            <div className="flex-1 flex items-center">
+              {/* <div className="max-w-md w-full">
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  className="w-full"
+                  prefix={<Search className="h-4 w-4 text-gray-400" />}
+                />
+              </div> */}
+            </div>
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full border border-slate-200 overflow-hidden" >
+                    <Image src="/avatar.gif" alt="Profile" className='rounded-full object-center w-full h-full ' width={80} height={80} />
+                    </div>
+
+                <div>
+                  <p className="text-sm font-medium">{admin.fullname}</p>
+                  <p className="text-xs text-gray-500">{admin.email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <main className="pt-24 pb-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
             {children}
           </div>
