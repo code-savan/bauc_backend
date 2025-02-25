@@ -13,7 +13,7 @@ export type Property = {
     id: string;
     title: string;
     slug?: string;
-    description?: Record<string, any>;
+    description?: string | { content: string; [key: string]: any };
     status?: string;
     location: string;
     type: string;

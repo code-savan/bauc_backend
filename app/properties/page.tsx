@@ -47,9 +47,9 @@ export default function PropertiesPage() {
           >
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="relative h-48">
-                {property.thumbnail_image ? (
+                {property.thumbnail ? (
                   <Image
-                    src={property.thumbnail_image}
+                    src={property.thumbnail}
                     alt={property.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform"
@@ -59,7 +59,7 @@ export default function PropertiesPage() {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                  <div className="flex items-center justify-center h-full bg-gray-100">
                     <span className="text-gray-400">No image available</span>
                   </div>
                 )}

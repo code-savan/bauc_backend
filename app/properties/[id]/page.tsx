@@ -68,7 +68,11 @@ export default function PropertyDetail({ params }: { params: { id: string } }) {
           </div>
 
           <div className="prose max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: property.description }} />
+            <div dangerouslySetInnerHTML={{
+              __html: typeof property.description === 'object'
+                ? property.description.content || ''
+                : property.description || ''
+            }} />
           </div>
 
           {property.gallery && property.gallery.length > 0 && (
