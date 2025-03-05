@@ -1,3 +1,6 @@
+import { File, FileText, X } from 'lucide-react';
+import Image from 'next/image';
+
 interface MediaPreviewProps {
   url: string;
   type: 'image' | 'pdf' | 'unknown';
