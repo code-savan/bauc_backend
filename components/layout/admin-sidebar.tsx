@@ -26,6 +26,7 @@ import {
   Target,
   LineChart,
   Bell,
+  FileCheck,
 } from 'lucide-react';
 import {
   Sheet,
@@ -140,6 +141,11 @@ export function AdminSidebar({ isSuperAdmin, onSignOut }: AdminSidebarProps) {
       title: 'Popup Submissions',
       href: '/admin/forms/popups',
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      title: 'KYC Forms',
+      href: '/admin/forms/kyc',
+      icon: <FileCheck className="h-5 w-5" />,
     },
   ];
 

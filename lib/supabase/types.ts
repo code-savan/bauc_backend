@@ -84,3 +84,35 @@ export type ImportJob = {
   created_at: string;
   updated_at: string;
 };
+
+export type KYCForm = {
+  id: string;
+  full_name: string;
+  contact_number: string;
+  email: string;
+  developer_name: string;
+  registration_number: string;
+  office_address: string;
+  website: string;
+  portfolio_name: string;
+  location: string;
+  portfolio_type: string;
+  project_timeline: string;
+  completion_date: string;
+  land_size: string;
+  survey_number: string;
+  current_land_use: string;
+  zoning_info: string;
+  topography_details: string;
+  infrastructure: string;
+  encumbrances: string;
+  documentation: string;
+  document_type: string;
+  additional_info: string;
+  consent: boolean;
+  signature: string;
+  signature_name: string;
+  documents_url: string[];
+  created_at: string;
+  status: 'pending' | 'approved' | 'rejected';
+};
