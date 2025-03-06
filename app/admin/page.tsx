@@ -25,15 +25,16 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import LocationDisplay from '@/components/property/LocationDisplay';
 
-const LocationDisplay = ({ location }: { location: string }) => {
-  try {
-    const locations = JSON.parse(location);
-    return <p className="text-xs text-muted-foreground">{locations.join(', ')}</p>;
-  } catch {
-    return <p className="text-xs text-muted-foreground">{location}</p>;
-  }
-};
+// const LocationDisplay = ({ location }: { location: string }) => {
+//   try {
+//     const locations = JSON.parse(location);
+//     return <p className="text-xs text-muted-foreground">{locations.join(', ')}</p>;
+//   } catch {
+//     return <p className="text-xs text-muted-foreground">{location}</p>;
+//   }
+// };
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({

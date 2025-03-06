@@ -1,10 +1,24 @@
-const LocationDisplay = ({ location }: { location: string }) => {
-    try {
-      const locations = JSON.parse(location);
-      return <p className="text-[15px] text-muted-foreground">{locations.join(', ')}</p>;
-    } catch {
-      return <p className="text-base">{location}</p>;
-    }
-  };
+import React from 'react';
 
-export default LocationDisplay;
+interface LocationDisplayProps {
+  location: string | string[];
+}
+
+export default function LocationDisplay({ location }: LocationDisplayProps) {
+  if (Array.isArray(location)) {
+    return <span>{location.join(', ')}</span>;
+  }
+
+  // Try to parse if it's a JSON string
+  try {
+    const parsedLocation = JSON.parse(location);
+    if (Array.isArray(parsedLocation)) {
+      return <span>{parsedLocation.join(', ')}</span>;
+    }
+  } catch (e) {
+    // Not JSON, continue
+  }
+
+  // Regular string
+  return <span>{location}</span>;
+}

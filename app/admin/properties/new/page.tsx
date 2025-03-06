@@ -32,7 +32,7 @@ import { ImageUploader } from "@/components/property/image-uploader";
 import { slugify } from "@/lib/utils";
 import { COUNTRY_OPTIONS, STATE_OPTIONS_NIGERIA, PROPERTY_TYPES, PROPERTY_STATUS } from "@/constants/index";
 import Image from "next/image";
-import { Trash2 } from "lucide-react";
+import { Strikethrough, Trash2 } from "lucide-react";
 import TextStyle from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
@@ -57,6 +57,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 const propertySchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -78,6 +79,7 @@ const propertySchema = z.object({
   full_image: z.string().nullable().optional(),
   price_range: z.string().optional(),
   payment_term: z.string().optional(),
+  website: z.string().optional(),
   developer_id: z.string().optional(),
 });
 
@@ -129,12 +131,6 @@ export default function NewPropertyPage() {
     },
   });
 
-  const fontSizes = [
-    { value: '12px', name: 'Small' },
-    { value: '16px', name: 'Normal' },
-    { value: '20px', name: 'Large' },
-    { value: '24px', name: 'Extra Large' },
-  ];
 
   const fontFamilies = [
     { value: 'inter', label: 'Inter' },
@@ -160,7 +156,7 @@ export default function NewPropertyPage() {
         }
       }
     }
-  });
+  })
 
   const editor = useEditor({
     extensions: [
@@ -185,7 +181,7 @@ export default function NewPropertyPage() {
     content: "",
     editorProps: {
       attributes: {
-        class: 'prose prose-stone dark:prose-invert max-w-none p-4 min-h-[200px] whitespace-pre-wrap',
+        class: 'prose max-w-none p-4 min-h-[200px] whitespace-pre-wrap',
       }
     },
     editable: true,
@@ -220,43 +216,78 @@ export default function NewPropertyPage() {
   const onSubmit = async (values: z.infer<typeof propertySchema>) => {
     setIsSubmitting(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
-      const priceRange =
-        priceMin !== undefined && priceMax !== undefined
-          ? `${priceMin} - ${priceMax}`
-          : undefined;
-      const propertyData = {
-        ...values,
-        slug: slugify(values.title),
-        description: editor?.getJSON() || {},
-        gallery: galleryImages,
-        thumbnail: thumbnailImage,
-        full_image: fullImage,
-        price_range: priceRange,
-        created_by: session.user.id,
-      };
-      console.log("Property Data:", propertyData);
-      const { error } = await supabase.from("properties").insert([propertyData]);
+      // Create a simplified description object with HTML content
+      const descriptionValue = editor?.getHTML() ? { content: editor.getHTML() } : null;
+
+      // Format price range
+      const formattedPriceRange = priceMin && priceMax
+        ? `₦${priceMin.toLocaleString()} - ₦${priceMax.toLocaleString()}`
+        : values.price_range;
+
+      // Create the property
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([
+          {
+            title: values.title,
+            slug: slugify(values.title),
+            description: descriptionValue, // Use simplified HTML content
+            status: values.status || 'available',
+            location: values.location,
+            type: values.type,
+            property_type: values.property_type,
+            area: values.area,
+            mortgage_option: values.mortgage_option,
+            initial_deposit: values.initial_deposit,
+            land_mark: values.land_mark,
+            discount: values.discount,
+            land_status: values.land_status,
+            completion_date: values.completion_date,
+            gallery: galleryImages,
+            thumbnail: thumbnailImage,
+            full_image: fullImage,
+            price_range: formattedPriceRange,
+            payment_term: values.payment_term,
+            website: values.website,
+            developer_id: values.developer_id || null,
+          },
+        ])
+        .select();
+
       if (error) throw error;
+
       toast({
         title: "Success",
         description: "Property created successfully",
       });
-      router.push("/admin/properties");
-      router.refresh();
-    } catch (error: any) {
+
+      router.push('/admin/properties');
+    } catch (error) {
+      console.error('Error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: "Failed to create property",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const fonts = [
+    { name: 'Default', value: 'inherit' },
+    { name: 'Arial', value: 'Arial' },
+    { name: 'Times New Roman', value: 'Times New Roman' },
+    { name: 'Courier New', value: 'Courier New' },
+    { name: 'Georgia', value: 'Georgia' },
+  ];
+
+  const fontSizes = [
+    { name: 'Small', value: '12px' },
+    { name: 'Normal', value: '16px' },
+    { name: 'Large', value: '20px' },
+    { name: 'Extra Large', value: '24px' },
+  ];
 
   // Helper function to get folder path
   const getFolderPath = () => {
@@ -538,6 +569,19 @@ export default function NewPropertyPage() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="website"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Website</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter property website URL" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <FormLabel>Price Range (Min)</FormLabel>
@@ -561,124 +605,129 @@ export default function NewPropertyPage() {
           <FormField
             control={form.control}
             name="description"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Description *</FormLabel>
-                <FormControl>
-                  <div className="border rounded-md">
-                    <div className="border-b bg-muted p-2 flex flex-wrap gap-2 items-center">
-                      <Select
-                        onValueChange={(value) => {
-                          editor?.chain().focus().setMark('textStyle', { fontSize: value }).run()
-                        }}
-                      >
-                        <SelectTrigger className="w-[120px] h-8">
-                          <SelectValue placeholder="Size..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fontSizes.map((size) => (
-                            <SelectItem key={size.value} value={size.value}>
-                              {size.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                <div className="border rounded-md">
+                  <div className="border-b p-2 flex gap-2 flex-wrap items-center">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => editor?.chain().focus().toggleBold().run()}
+                      className={editor?.isActive('bold') ? 'bg-slate-200' : ''}
+                    >
+                      <BoldIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => editor?.chain().focus().toggleItalic().run()}
+                      className={editor?.isActive('italic') ? 'bg-slate-200' : ''}
+                    >
+                      <ItalicIcon className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => editor?.chain().focus().toggleStrike().run()}
+                      className={editor?.isActive('strike') ? 'bg-slate-200' : ''}
+                    >
+                      <Strikethrough className="h-4 w-4" />
+                    </Button>
 
-                      <Select
-                        value={editor?.getAttributes('textStyle').fontFamily}
-                        onValueChange={(value) => {
-                          editor?.chain().focus().setFontFamily(value).run();
-                        }}
-                      >
-                        <SelectTrigger className="w-[140px] h-8">
-                          <SelectValue placeholder="Font family" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fontFamilies.map((font) => (
-                            <SelectItem
-                              key={font.value}
-                              value={font.value}
-                              className={cn("font-[" + font.value + "]")}
-                            >
-                              {font.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8">
-                            <Palette className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-40">
-                          <div className="grid grid-cols-5 gap-2">
-                            {[
-                              '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
-                              '#FF00FF', '#00FFFF', '#808080', '#800000', '#808000',
-                            ].map((color) => (
-                              <Button
-                                key={color}
-                                style={{ backgroundColor: color }}
-                                className="w-6 h-6 rounded-full"
-                                onClick={() => editor?.chain().focus().setColor(color).run()}
-                              />
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-
-                      <div className="w-px h-6 bg-border mx-1" />
-
-                      <Toggle
-                        size="sm"
-                        pressed={editor?.isActive("bold")}
-                        onPressedChange={() => editor?.chain().focus().toggleBold().run()}
-                      >
-                        <BoldIcon className="h-4 w-4" />
-                      </Toggle>
-                      <Toggle
-                        size="sm"
-                        pressed={editor?.isActive("italic")}
-                        onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
-                      >
-                        <ItalicIcon className="h-4 w-4" />
-                      </Toggle>
-                      <Toggle
-                        size="sm"
-                        pressed={editor?.isActive("strike")}
-                        onPressedChange={() => editor?.chain().focus().toggleStrike().run()}
-                      >
-                        <StrikeIcon className="h-4 w-4" />
-                      </Toggle>
-
-                      <div className="w-px h-6 bg-border mx-1" />
-
-                      <Toggle
-                        size="sm"
-                        pressed={editor?.isActive("bulletList")}
-                        onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
-                      >
-                        <List className="h-4 w-4" />
-                      </Toggle>
-                      <Toggle
-                        size="sm"
-                        pressed={editor?.isActive("orderedList")}
-                        onPressedChange={() => editor?.chain().focus().toggleOrderedList().run()}
-                      >
-                        <ListOrdered className="h-4 w-4" />
-                      </Toggle>
-                    </div>
-                    <EditorContent
-                      editor={editor}
-                      className="prose prose-stone dark:prose-invert max-w-none p-4 min-h-[200px] max-h-[400px] overflow-y-auto"
-                      onChange={() => {
-                        form.setValue("description", { content: editor?.getHTML() || "" });
+                    {/* Font Family Selector */}
+                    <Select
+                      onValueChange={(value) => {
+                        editor?.chain().focus().setFontFamily(value).run()
                       }}
-                    />
+                    >
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue placeholder="Font..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fonts.map((font) => (
+                          <SelectItem key={font.value} value={font.value}>
+                            <span style={{ fontFamily: font.value }}>{font.name}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Font Size Selector */}
+                    <Select
+                      onValueChange={(value) => {
+                        editor?.chain().focus().setMark('textStyle', { fontSize: value }).run()
+                      }}
+                    >
+                      <SelectTrigger className="w-[120px] h-8">
+                        <SelectValue placeholder="Size..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fontSizes.map((size) => (
+                          <SelectItem key={size.value} value={size.value}>
+                            {size.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Color Picker */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8">
+                          <Palette className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-40">
+                        <div className="grid grid-cols-5 gap-2">
+                          {[
+                            '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+                            '#FF00FF', '#00FFFF', '#808080', '#800000', '#808000',
+                          ].map((color) => (
+                            <Button
+                              key={color}
+                              style={{ backgroundColor: color }}
+                              className="w-6 h-6 rounded-full"
+                              onClick={() => editor?.chain().focus().setColor(color).run()}
+                            />
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* List Controls */}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                      className={editor?.isActive('bulletList') ? 'bg-slate-200' : ''}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                      className={editor?.isActive('orderedList') ? 'bg-slate-200' : ''}
+                    >
+                      <ListOrdered className="h-4 w-4" />
+                    </Button>
                   </div>
-                </FormControl>
+                  <EditorContent
+                    editor={editor}
+                    className="prose max-w-none p-4 min-h-[200px] max-h-[400px] overflow-y-auto"
+                    {...field}
+                    onChange={() => {
+                      field.onChange(editor?.getHTML() || '');
+                    }}
+                  />
+                </div>
                 <FormMessage />
               </FormItem>
             )}

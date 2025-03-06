@@ -66,18 +66,9 @@ export default function AdminLayout({
       {/* Top Navigation */}
       <div className="md:pl-64">
         <div className="fixed top-0 right-0 left-0 md:left-64 h-[63px] bg-white border-b border-gray-200 z-10">
-          <div className="flex items-center justify-between h-full px-4">
-            <div className="flex-1 flex items-center">
-              {/* <div className="max-w-md w-full">
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-full"
-                  prefix={<Search className="h-4 w-4 text-gray-400" />}
-                />
-              </div> */}
-            </div>
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between h-full px-4 ">
+
+            <div className="flex items-center md:justify-end justify-between gap-4 w-full">
               <NotificationBell />
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full border border-slate-200 overflow-hidden" >
@@ -93,7 +84,7 @@ export default function AdminLayout({
           </div>
         </div>
 
-        <main className="pt-24 pb-8">
+        <main className="md:pt-20 pt-8 pb-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
             {children}
           </div>

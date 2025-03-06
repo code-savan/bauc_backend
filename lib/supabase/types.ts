@@ -15,7 +15,7 @@ export type Property = {
     slug?: string;
     description?: string | { content: string; [key: string]: any };
     status?: string;
-    location: string;
+    location: string | string[];
     type: string;
     property_type?: string;
     area?: number;
@@ -31,6 +31,7 @@ export type Property = {
     full_image?: string | null;
     price_range?: string;
     payment_term?: string;
+    website?: string;
     created_by?: string;
     created_at?: string;
     updated_at?: string;
