@@ -16,6 +16,9 @@ export type Property = {
     description?: string | { content: string; [key: string]: any };
     status?: string;
     location: string | string[];
+    country?: string;
+    state?: string;
+    address?: string;
     type: string;
     property_type?: string;
     area?: number;
@@ -30,27 +33,30 @@ export type Property = {
     thumbnail?: string | null;
     full_image?: string | null;
     price_range?: string;
+    min_price?: number;
+    max_price?: number;
     payment_term?: string;
     website?: string;
+    map_id?: string;
     created_by?: string;
     created_at?: string;
     updated_at?: string;
     developer_id?: string;
-  };
+};
 
-  export type Event = {
-    id: string;
-    title: string;
-    slug?: string;
-    loaction?: string;
-    description?: Record<string, any>;
-    gallery?: string[];
-    banner_image?: string | null;
-    event_video?: string | null;
-    hosted_by?: string;
-    created_at?: string;
-    updated_at?: string;
-  };
+export type Event = {
+  id: string;
+  title: string;
+  slug?: string;
+  loaction?: string;
+  description?: Record<string, any>;
+  gallery?: string[];
+  banner_image?: string | null;
+  event_video?: string | null;
+  hosted_by?: string;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export type Developer = {
     id: string;

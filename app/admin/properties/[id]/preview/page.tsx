@@ -162,7 +162,11 @@ export default function PropertyPreview({ params }: { params: { id: string } }) 
             <h1 className="text-3xl font-bold text-white">{property.title}</h1>
             <div className="flex items-center mt-2">
               <MapPin className="h-4 w-4 text-white mr-1" />
-              <p className="text-white">{locationDisplay}</p>
+              <p className="text-white">
+                {[property.country, property.state, property.address]
+                  .filter(Boolean)
+                  .join(', ') || locationDisplay}
+              </p>
             </div>
           </div>
         </div>
@@ -231,7 +235,11 @@ export default function PropertyPreview({ params }: { params: { id: string } }) 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Price Range</p>
-                      <p className="font-medium">{property.price_range || 'N/A'}</p>
+                      <p className="font-medium">
+                        {property.min_price || property.max_price ?
+                          `₦${property.min_price?.toLocaleString() || 0} - ₦${property.max_price?.toLocaleString() || 0}` :
+                          property.price_range || 'N/A'}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Payment Term</p>
@@ -307,6 +315,31 @@ export default function PropertyPreview({ params }: { params: { id: string } }) 
                     <div>
                       <p className="text-sm text-gray-500">Slug</p>
                       <p className="font-medium">{property.slug || 'N/A'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Location</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Location</p>
+                    <div className="space-y-1">
+                      {property.country && (
+                        <p className="font-medium">Country: {property.country}</p>
+                      )}
+                      {property.state && (
+                        <p className="font-medium">State: {property.state}</p>
+                      )}
+                      {property.address && (
+                        <p className="font-medium">Address: {property.address}</p>
+                      )}
+                      {!property.country && !property.state && !property.address && (
+                        <p className="font-medium">{locationDisplay || 'N/A'}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

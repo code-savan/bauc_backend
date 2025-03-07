@@ -64,11 +64,14 @@ const propertySchema = z.object({
   description: z.any().optional(),
   status: z.string().optional(),
   location: z.array(z.string()).min(1, "Location is required"),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  address: z.string().optional(),
   type: z.string().min(1, "Property type is required"),
   property_type: z.string().optional(),
   area: z.number().optional(),
   mortgage_option: z.boolean().default(false),
-  initial_deposit: z.number().nullable().optional(),
+  initial_deposit: z.string().nullable().optional(),
   land_mark: z.string().nullable().optional(),
   discount: z.string().optional(),
   land_status: z.string().nullable().optional(),
@@ -77,10 +80,12 @@ const propertySchema = z.object({
   gallery: z.array(z.string()).optional(),
   thumbnail: z.string().nullable().optional(),
   full_image: z.string().nullable().optional(),
-  price_range: z.string().optional(),
+  min_price: z.number().optional(),
+  max_price: z.number().optional(),
   payment_term: z.string().optional(),
   website: z.string().optional(),
   developer_id: z.string().optional(),
+  map_id: z.string().optional(),
 });
 
 export default function NewPropertyPage() {
@@ -123,11 +128,22 @@ export default function NewPropertyPage() {
   const form = useForm<z.infer<typeof propertySchema>>({
     resolver: zodResolver(propertySchema),
     defaultValues: {
+      title: '',
       mortgage_option: false,
-      discount: "",
+      discount: '',
       amenities: [],
       location: ["Nigeria"],
-      developer_id: "",
+      developer_id: '',
+      address: '',
+      country: '',
+      state: '',
+      property_type: '',
+      payment_term: '',
+      website: '',
+      land_mark: '',
+      land_status: '',
+      completion_date: '',
+      map_id: '',
     },
   });
 
@@ -219,10 +235,9 @@ export default function NewPropertyPage() {
       // Create a simplified description object with HTML content
       const descriptionValue = editor?.getHTML() ? { content: editor.getHTML() } : null;
 
-      // Format price range
-      const formattedPriceRange = priceMin && priceMax
-        ? `₦${priceMin.toLocaleString()} - ₦${priceMax.toLocaleString()}`
-        : values.price_range;
+      // Get country and state from location array
+      const country = values.location[0] || '';
+      const state = values.location.length > 1 ? values.location[1] : '';
 
       // Create the property
       const { data, error } = await supabase
@@ -231,9 +246,12 @@ export default function NewPropertyPage() {
           {
             title: values.title,
             slug: slugify(values.title),
-            description: descriptionValue, // Use simplified HTML content
+            description: descriptionValue,
             status: values.status || 'available',
             location: values.location,
+            country: country,
+            state: state,
+            address: values.address,
             type: values.type,
             property_type: values.property_type,
             area: values.area,
@@ -246,10 +264,12 @@ export default function NewPropertyPage() {
             gallery: galleryImages,
             thumbnail: thumbnailImage,
             full_image: fullImage,
-            price_range: formattedPriceRange,
+            min_price: priceMin,
+            max_price: priceMax,
             payment_term: values.payment_term,
             website: values.website,
             developer_id: values.developer_id || null,
+            map_id: values.map_id,
           },
         ])
         .select();
@@ -393,6 +413,19 @@ export default function NewPropertyPage() {
           />
           <FormField
             control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Enter property address" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="type"
             render={({ field }) => (
               <FormItem>
@@ -477,10 +510,11 @@ export default function NewPropertyPage() {
                 <FormLabel>Initial Deposit</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
+                    type="text"
                     {...field}
                     value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) => field.onChange(e.target.value ? String(e.target.value) : null)}
+                    placeholder="Enter initial deposit"
                   />
                 </FormControl>
                 <FormMessage />
@@ -587,8 +621,8 @@ export default function NewPropertyPage() {
               <FormLabel>Price Range (Min)</FormLabel>
               <Input
                 type="number"
-                value={priceMin || ""}
-                onChange={(e) => setPriceMin(Number(e.target.value))}
+                value={priceMin ?? ""}
+                onChange={(e) => setPriceMin(e.target.value ? Number(e.target.value) : undefined)}
                 placeholder="Minimum Price"
               />
             </div>
@@ -596,8 +630,8 @@ export default function NewPropertyPage() {
               <FormLabel>Price Range (Max)</FormLabel>
               <Input
                 type="number"
-                value={priceMax || ""}
-                onChange={(e) => setPriceMax(Number(e.target.value))}
+                value={priceMax ?? ""}
+                onChange={(e) => setPriceMax(e.target.value ? Number(e.target.value) : undefined)}
                 placeholder="Maximum Price"
               />
             </div>
@@ -828,6 +862,19 @@ export default function NewPropertyPage() {
             )}
           </div>
 
+          <FormField
+            control={form.control}
+            name="map_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Map ID/Link</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Enter map ID or embed link" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="flex justify-end space-x-4">
             <Button

@@ -150,7 +150,7 @@ export default function EditProperty({ params }: { params: { id: string } }) {
 
     setSaving(true);
     try {
-      // Create a description object with HTML content - same as in new property page
+      // Create a description object with HTML content
       const descriptionValue = description ? { content: description } : null;
 
       // Format location back to an array if it's a comma-separated string
@@ -159,13 +159,41 @@ export default function EditProperty({ params }: { params: { id: string } }) {
         locationValue = property.location.split(',').map(item => item.trim());
       }
 
+      // Update country and state from location array
+      const country = Array.isArray(locationValue) && locationValue.length > 0 ? locationValue[0] : '';
+      const state = Array.isArray(locationValue) && locationValue.length > 1 ? locationValue[1] : '';
+
+      // Prepare the update data, ensuring all fields have proper types
+      const updateData = {
+        title: property.title,
+        description: descriptionValue,
+        location: locationValue,
+        country: country,
+        state: state,
+        address: property.address || '',
+        type: property.type,
+        property_type: property.property_type || '',
+        area: property.area || null,
+        mortgage_option: property.mortgage_option || false,
+        initial_deposit: property.initial_deposit || null,
+        land_mark: property.land_mark || null,
+        discount: property.discount || '',
+        land_status: property.land_status || null,
+        completion_date: property.completion_date || '',
+        gallery: property.gallery || [],
+        thumbnail: property.thumbnail,
+        full_image: property.full_image,
+        min_price: property.min_price || null,
+        max_price: property.max_price || null,
+        payment_term: property.payment_term || '',
+        website: property.website || '',
+        developer_id: property.developer_id || null,
+        map_id: property.map_id || '',
+      };
+
       const { error } = await supabase
         .from('properties')
-        .update({
-          ...property,
-          description: descriptionValue,
-          location: locationValue,
-        })
+        .update(updateData)
         .eq('id', params.id);
 
       if (error) throw error;
@@ -520,6 +548,34 @@ export default function EditProperty({ params }: { params: { id: string } }) {
                       maxFiles={10}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="col-span-full bg-gray-50 rounded-xl p-6 space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Address</h2>
+                <div>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    value={property.address || ''}
+                    onChange={(e) => handleChange('address', e.target.value)}
+                    placeholder="Enter address"
+                  />
+                </div>
+              </div>
+
+              {/* Map Information */}
+              <div className="col-span-full bg-gray-50 rounded-xl p-6 space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Map Information</h2>
+                <div>
+                  <Label htmlFor="map_id">Map ID/Link</Label>
+                  <Input
+                    id="map_id"
+                    value={property.map_id || ''}
+                    onChange={(e) => handleChange('map_id', e.target.value)}
+                    placeholder="Enter map ID or embed link"
+                  />
                 </div>
               </div>
             </div>
