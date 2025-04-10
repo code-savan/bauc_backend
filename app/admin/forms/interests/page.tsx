@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
+import { ExportDialog } from '@/components/ui/export-dialog';
 
 interface Interest {
   id: string;
@@ -80,29 +81,59 @@ export default function InterestList() {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'Country', 'Services', 'Property Type', 'Budget', 'Date'];
-    const csvData = interests.map(interest => [
-      `${interest.first_name} ${interest.last_name}`,
-      interest.email,
-      interest.phone,
-      interest.country,
-      interest.services_interested,
-      interest.property_type,
-      interest.budget_range,
-      new Date(interest.created_at).toLocaleDateString(),
-    ]);
+  const handleExport = async () => {
+    try {
+      const { data: interestSubmissions, error } = await supabase
+        .from('interest_submissions')
+        .select();
 
-    const csvContent = [headers, ...csvData]
-      .map(row => row.join(','))
-      .join('\n');
+      if (error) throw error;
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `expressions_of_interest_${new Date().toISOString()}.csv`;
-    link.click();
+      if (!interestSubmissions || interestSubmissions.length === 0) {
+        alert('No data found for the selected range');
+        return;
+      }
+
+      const headers = [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'state',
+        'property_type',
+        'budget',
+        'created_at'
+      ];
+
+      const csvRows = [];
+      csvRows.push(headers.join(','));
+
+      for (const item of interestSubmissions) {
+        const values = headers.map(header => {
+          const value = item[header as keyof typeof item] || '';
+          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
+            ? `"${value.replace(/"/g, '""')}"`
+            : value;
+        });
+        csvRows.push(values.join(','));
+      }
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `interest_submissions_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      alert('Failed to export data. Please try again.');
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -157,14 +188,7 @@ export default function InterestList() {
               className="w-full md:w-[250px] bg-white"
             />
           </div>
-          <Button
-            onClick={exportToCSV}
-            disabled={interests.length === 0}
-            className="shrink-0"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export to CSV
-          </Button>
+          <ExportDialog onExport={handleExport} disabled={interests.length === 0} />
         </div>
       </div>
 

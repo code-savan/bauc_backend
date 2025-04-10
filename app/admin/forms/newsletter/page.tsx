@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
+import { ExportDialog } from '@/components/ui/export-dialog';
 
 interface Subscriber {
   id: string;
@@ -70,6 +71,56 @@ export default function NewsletterList() {
       setError('Failed to load subscribers. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const { data: newsletterSubmissions, error } = await supabase
+        .from('newsletter_submissions')
+        .select('*');
+
+      if (error) throw error;
+
+      if (!newsletterSubmissions || newsletterSubmissions.length === 0) {
+        alert('No data found for the selected range');
+        return;
+      }
+
+      const headers = [
+        'id',
+        'email',
+        'created_at'
+      ];
+
+      const csvRows = [];
+      csvRows.push(headers.join(','));
+
+      for (const item of newsletterSubmissions) {
+        const values = headers.map(header => {
+          const value = item[header as keyof typeof item] || '';
+          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
+            ? `"${value.replace(/"/g, '""')}"`
+            : value;
+        });
+        csvRows.push(values.join(','));
+      }
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `newsletter_submissions_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      alert('Failed to export data. Please try again.');
     }
   };
 
@@ -144,14 +195,7 @@ export default function NewsletterList() {
               className="w-full md:w-[250px] bg-white"
             />
           </div>
-          <Button
-            onClick={exportToCSV}
-            disabled={subscribers.length === 0}
-            className="shrink-0"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export to CSV
-          </Button>
+          <ExportDialog onExport={handleExport} disabled={subscribers.length === 0} />
         </div>
       </div>
 

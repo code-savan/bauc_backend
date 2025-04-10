@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { KYCForm } from '@/lib/supabase/types';
+import { ExportDialog } from '@/components/ui/export-dialog';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -78,27 +79,49 @@ export default function KYCFormsList() {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ['Full Name', 'Email', 'Developer Name', 'Portfolio Name', 'Status', 'Date'];
-    const csvData = forms.map(form => [
-      form.full_name,
-      form.email,
-      form.developer_name,
-      form.portfolio_name,
-      form.status,
-      new Date(form.created_at).toLocaleDateString(),
-    ]);
+  const handleExport = async () => {
+    try {
+      const headers = [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'nationality',
+        'residence_country',
+        'occupation',
+        'created_at'
+      ];
 
-    const csvContent = [headers, ...csvData]
-      .map(row => row.join(','))
-      .join('\n');
+      const csvRows = [];
+      csvRows.push(headers.join(','));
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `kyc_forms_${new Date().toISOString()}.csv`;
-    link.click();
+      for (const item of forms) {
+        const values = headers.map(header => {
+          const value = item[header as keyof typeof item] || '';
+          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
+            ? `"${value.replace(/"/g, '""')}"`
+            : value;
+        });
+        csvRows.push(values.join(','));
+      }
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `kyc_submissions_${dateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('Error exporting data:', err);
+      alert('Failed to export data. Please try again.');
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -163,14 +186,7 @@ export default function KYCFormsList() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            onClick={exportToCSV}
-            disabled={forms.length === 0}
-            className="shrink-0"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export to CSV
-          </Button>
+          <ExportDialog onExport={handleExport} disabled={forms.length === 0} />
         </div>
       </div>
 
