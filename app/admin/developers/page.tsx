@@ -157,7 +157,7 @@ export default function DevelopersPage() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/admin/developers/${developer.id}/edit`}>
+                            <Link href={`/admin/developers/${developer.id}`}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit
                             </Link>

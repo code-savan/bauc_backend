@@ -21,7 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
-import { ExportDialog } from '@/components/ui/export-dialog';
+import { ExportDialog, type ExportParams } from '@/components/ui/export-dialog';
+import { toast } from 'sonner';
 
 interface Subscriber {
   id: string;
@@ -74,53 +75,90 @@ export default function NewsletterList() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (params: ExportParams) => {
     try {
-      const { data: newsletterSubmissions, error } = await supabase
-        .from('newsletter_submissions')
-        .select('*');
+      let query = supabase
+        .from('newsletter_subscribers')
+        .select()
+        .order('created_at', { ascending: false });
+
+      // Apply filters based on params
+      if (params.type === 'date') {
+        if (params.range === 'today') {
+          query = query.gte('created_at', new Date().toISOString().split('T')[0]);
+        } else if (params.range === 'yesterday') {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          query = query
+            .gte('created_at', yesterday.toISOString().split('T')[0])
+            .lt('created_at', new Date().toISOString().split('T')[0]);
+        } else if (params.range === 'last7') {
+          const last7Days = new Date();
+          last7Days.setDate(last7Days.getDate() - 7);
+          query = query.gte('created_at', last7Days.toISOString());
+        } else if (params.range === 'last30') {
+          const last30Days = new Date();
+          last30Days.setDate(last30Days.getDate() - 30);
+          query = query.gte('created_at', last30Days.toISOString());
+        } else if (params.range === 'thisMonth') {
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          query = query.gte('created_at', startOfMonth.toISOString());
+        } else if (params.range === 'lastMonth') {
+          const startOfLastMonth = new Date();
+          startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+          startOfLastMonth.setDate(1);
+          const endOfLastMonth = new Date();
+          endOfLastMonth.setDate(0);
+          query = query
+            .gte('created_at', startOfLastMonth.toISOString())
+            .lt('created_at', endOfLastMonth.toISOString());
+        } else if (params.range === 'custom' && params.customStartDate && params.customEndDate) {
+          query = query
+            .gte('created_at', params.customStartDate)
+            .lte('created_at', params.customEndDate);
+        }
+      } else if (params.type === 'amount' && params.range !== 'all') {
+        const limit = params.range === 'custom' ? params.customAmount : parseInt(params.range);
+        if (limit) {
+          query = query.limit(limit);
+        }
+      }
+
+      const { data: newsletters, error } = await query;
 
       if (error) throw error;
 
-      if (!newsletterSubmissions || newsletterSubmissions.length === 0) {
-        alert('No data found for the selected range');
+      if (!newsletters || newsletters.length === 0) {
+        toast.error('No data found for the selected range');
         return;
       }
 
-      const headers = [
-        'id',
-        'email',
-        'created_at'
-      ];
+      // Create CSV content
+      const headers = ['Email', 'Date'];
+      const csvRows = [headers];
 
-      const csvRows = [];
-      csvRows.push(headers.join(','));
-
-      for (const item of newsletterSubmissions) {
-        const values = headers.map(header => {
-          const value = item[header as keyof typeof item] || '';
-          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
-            ? `"${value.replace(/"/g, '""')}"`
-            : value;
-        });
-        csvRows.push(values.join(','));
+      for (const newsletter of newsletters) {
+        csvRows.push([
+          newsletter.email || '',
+          new Date(newsletter.created_at).toLocaleString(),
+        ].map(value => `"${String(value).replace(/"/g, '""')}"`));
       }
 
       const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.setAttribute('href', url);
-      link.setAttribute('download', `newsletter_submissions_${dateStr}.csv`);
+      link.href = url;
+      link.download = `newsletter_subscribers_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
 
     } catch (err) {
       console.error('Error exporting data:', err);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data');
     }
   };
 

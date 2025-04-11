@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
-import { ExportDialog } from '@/components/ui/export-dialog';
+import { ExportDialog, ExportParams } from '@/components/ui/export-dialog';
+import { toast } from 'sonner';
 
 interface Interest {
   id: string;
@@ -81,58 +82,96 @@ export default function InterestList() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (params: ExportParams) => {
     try {
-      const { data: interestSubmissions, error } = await supabase
-        .from('interest_submissions')
-        .select();
+      let query = supabase
+        .from('expression_of_interests')
+        .select()
+        .order('created_at', { ascending: false });
+
+      // Apply filters based on params
+      if (params.type === 'date') {
+        if (params.range === 'today') {
+          query = query.gte('created_at', new Date().toISOString().split('T')[0]);
+        } else if (params.range === 'yesterday') {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          query = query
+            .gte('created_at', yesterday.toISOString().split('T')[0])
+            .lt('created_at', new Date().toISOString().split('T')[0]);
+        } else if (params.range === 'last7') {
+          const last7Days = new Date();
+          last7Days.setDate(last7Days.getDate() - 7);
+          query = query.gte('created_at', last7Days.toISOString());
+        } else if (params.range === 'last30') {
+          const last30Days = new Date();
+          last30Days.setDate(last30Days.getDate() - 30);
+          query = query.gte('created_at', last30Days.toISOString());
+        } else if (params.range === 'thisMonth') {
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          query = query.gte('created_at', startOfMonth.toISOString());
+        } else if (params.range === 'lastMonth') {
+          const startOfLastMonth = new Date();
+          startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+          startOfLastMonth.setDate(1);
+          const endOfLastMonth = new Date();
+          endOfLastMonth.setDate(0);
+          query = query
+            .gte('created_at', startOfLastMonth.toISOString())
+            .lt('created_at', endOfLastMonth.toISOString());
+        } else if (params.range === 'custom' && params.customStartDate && params.customEndDate) {
+          query = query
+            .gte('created_at', params.customStartDate)
+            .lte('created_at', params.customEndDate);
+        }
+      } else if (params.type === 'amount' && params.range !== 'all') {
+        const limit = params.range === 'custom' ? params.customAmount : parseInt(params.range);
+        if (limit) {
+          query = query.limit(limit);
+        }
+      }
+
+      const { data: interests, error } = await query;
 
       if (error) throw error;
 
-      if (!interestSubmissions || interestSubmissions.length === 0) {
-        alert('No data found for the selected range');
+      if (!interests || interests.length === 0) {
+        toast.error('No data found for the selected range');
         return;
       }
 
-      const headers = [
-        'id',
-        'name',
-        'email',
-        'phone',
-        'state',
-        'property_type',
-        'budget',
-        'created_at'
-      ];
+      // Create CSV content with correct field names from your expression_of_interests table
+      const headers = ['Name', 'Email', 'Phone', 'Country', 'Property Type', 'Budget', 'Services', 'Date'];
+      const csvRows = [headers];
 
-      const csvRows = [];
-      csvRows.push(headers.join(','));
-
-      for (const item of interestSubmissions) {
-        const values = headers.map(header => {
-          const value = item[header as keyof typeof item] || '';
-          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
-            ? `"${value.replace(/"/g, '""')}"`
-            : value;
-        });
-        csvRows.push(values.join(','));
+      for (const interest of interests) {
+        csvRows.push([
+          `${interest.first_name} ${interest.last_name}` || '',
+          interest.email || '',
+          interest.phone || '',
+          interest.country || '',
+          interest.property_type || '',
+          interest.budget_range || '',
+          interest.services_interested || '',
+          new Date(interest.created_at).toLocaleString(),
+        ].map(value => `"${String(value).replace(/"/g, '""')}"`));
       }
 
       const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.setAttribute('href', url);
-      link.setAttribute('download', `interest_submissions_${dateStr}.csv`);
+      link.href = url;
+      link.download = `expression_of_interests_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
 
     } catch (err) {
       console.error('Error exporting data:', err);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data');
     }
   };
 

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { formatDate } from "@/lib/utils";
 import { ExportDialog, type ExportParams } from '@/components/ui/export-dialog';
+import { toast } from 'sonner';
 
 interface Contact {
   id: string;
@@ -83,7 +84,7 @@ export default function ContactList() {
   const handleExport = async (params: ExportParams) => {
     try {
       let query = supabase
-        .from('contact_submissions')
+        .from('contactform')
         .select()
         .order('created_at', { ascending: false });
 
@@ -135,48 +136,39 @@ export default function ContactList() {
       if (error) throw error;
 
       if (!contacts || contacts.length === 0) {
-        alert('No data found for the selected range');
+        toast.error('No data found for the selected range');
         return;
       }
 
-      // Create CSV content
-      const headers = [
-        'id',
-        'name',
-        'email',
-        'phone',
-        'message',
-        'created_at'
-      ];
+      // Create CSV content with correct field names from your contactform table
+      const headers = ['Name', 'Email', 'Phone', 'Subject', 'Message', 'Date'];
+      const csvRows = [headers];
 
-      const csvRows = [];
-      csvRows.push(headers.join(','));
-
-      for (const item of contacts) {
-        const values = headers.map(header => {
-          const value = item[header as keyof typeof item] || '';
-          return typeof value === 'string' && (value.includes(',') || value.includes('"'))
-            ? `"${value.replace(/"/g, '""')}"`
-            : value;
-        });
-        csvRows.push(values.join(','));
+      for (const contact of contacts) {
+        csvRows.push([
+          contact.name || '',
+          contact.email || '',
+          contact.phone || '',
+          contact.subject || '',
+          contact.message || '',
+          new Date(contact.created_at).toLocaleString(),
+        ].map(value => `"${String(value).replace(/"/g, '""')}"`));
       }
 
       const csvContent = csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.setAttribute('href', url);
-      link.setAttribute('download', `contact_submissions_${dateStr}.csv`);
+      link.href = url;
+      link.download = `contact_submissions_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
 
     } catch (err) {
       console.error('Error exporting data:', err);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data');
     }
   };
 
